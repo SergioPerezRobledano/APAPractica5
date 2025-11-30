@@ -112,10 +112,21 @@ public class Record : MonoBehaviour
             string date = DateTime.Now.ToString();
             date = date.Replace("/", "_");
             date = date.Replace(":", "_");
-            File.WriteAllText(csvOutput + "_" + date + ".csv", csvFormat);
-            Debug.Log("Saving to: " + csvOutput + "_" + date + ".csv");
+            string folderPath = Application.dataPath + "/../DataCSV/";
+            // Crear la carpeta si no existe
+            Directory.CreateDirectory(folderPath);
 
+            // Crear el archivo dentro de esa carpeta
+            string path = folderPath + csvOutput + "_" + date + ".csv";
+
+            File.WriteAllText(path, csvFormat);
+
+            Debug.Log("Archivo guardado en: " + path);
             Debug.Log("File " + csvOutput + " save");
+
+  
+
+
         }
     }
 
