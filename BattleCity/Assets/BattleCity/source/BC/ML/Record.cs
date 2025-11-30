@@ -113,6 +113,8 @@ public class Record : MonoBehaviour
             date = date.Replace("/", "_");
             date = date.Replace(":", "_");
             File.WriteAllText(csvOutput + "_" + date + ".csv", csvFormat);
+            Debug.Log("Saving to: " + csvOutput + "_" + date + ".csv");
+
             Debug.Log("File " + csvOutput + " save");
         }
     }
