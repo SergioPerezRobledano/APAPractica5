@@ -55,17 +55,36 @@ def unir_csv_en_carpeta(carpeta_entrada, archivo_salida):
     """
     dataframes = []
 
-    # Recorre todos los archivos de la carpeta
     for archivo in os.listdir(carpeta_entrada):
         if archivo.endswith(".csv"):
             ruta = os.path.join(carpeta_entrada, archivo)
-            print(f"Leyendo: {ruta}")
-            df = pd.read_csv(ruta)
-            dataframes.append(df)
+            print(f"Revisando: {ruta}")
 
-    # Une todos los dataframes
+            # Leer el archivo completo como texto para inspeccionar la última línea
+            with open(ruta, "r", encoding="utf-8") as f:
+                lineas = f.read().strip().split("\n")
+
+            ultima_linea = lineas[-1].strip()
+
+            # Verificar si la última línea empieza por "win"
+            if ultima_linea.startswith("win"):
+                print(f"✔ Archivo válido, se añade: {archivo}")
+
+                # Leer CSV ignorando la última línea (que contiene win)
+                df = pd.read_csv(ruta, on_bad_lines='skip')
+                
+                # Eliminar la fila "win" si entró
+                df = df[df.iloc[:, 0] != "win"]
+
+                dataframes.append(df)
+            else:
+                print(f"✖ Archivo ignorado (no termina en 'win'): {archivo}")
+
+    # Si no hay archivos válidos, evitar error
+    if not dataframes:
+        print("No se encontró ningún CSV válido.")
+        return
+
     df_final = pd.concat(dataframes, ignore_index=True)
-
-    # Guarda el resultado
     df_final.to_csv(archivo_salida, index=False)
-    print(f"Archivo final guardado en: {archivo_salida}")
+    print(f"\nArchivo final guardado en: {archivo_salida}")
