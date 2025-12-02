@@ -25,7 +25,7 @@ df = df[df["action"].isin([0,1,2,3,4,5])]  # ejemplo si solo existen estas accio
 print("Tras filtrar acciones inválidas:", df.shape)
 
 # ---- 2.3 Corregir posiciones imposibles
-# Posición válida en el mapa → en muchos juegos es entre 0 y 30 (ajusta según tu entorno)
+# Posición válida en el mapa  0 y 30 
 def corregir_posicion(x):
     return x if 0 <= x <= 30 else 30
 
