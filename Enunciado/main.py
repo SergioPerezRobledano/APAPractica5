@@ -73,3 +73,24 @@ if __name__ == "__main__":
         print("Guay del paraguay: " + str(acc))
     else: 
         print("MALMALMAL: " + str(acc))
+
+    # 8 Ejecutar test con MLP de SKLearn con parametros cambiados, usando relu y lbfgs
+    mlp_sk2 = MLPClassifier(hidden_layer_sizes=[50,40,35],
+                           activation="relu",
+                           solver="lbfgs",
+                           max_iter = num_ite_global,
+                           learning_rate="constant", 
+                           learning_rate_init = lambda_global,
+                           n_iter_no_change = num_ite_global, 
+                           alpha = alpha_global,
+                           verbose=True,
+                           random_state=0,
+                           )
+
+    mlp_sk2.fit(X_train,y_train_encoded) # Para entrenar a la red con los dato s que le pasamos 
+    acc2 = mlp_sk2.score(X_test,y_test_encoded) # Esto saca la precision del modelo con respecto a los datos supuestos del test
+
+    if(acc2 > 0.80):
+        print("Guay del paraguay la segunda: " + str(acc2))
+    else: 
+        print("MALMALMAL la segunda: " + str(acc2))
