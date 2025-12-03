@@ -53,6 +53,7 @@ if __name__ == "__main__":
         hidden_layers=hidden_layers_global 
     )
 
+    # 6 Ejecutar test con MLP de SKLearn
     mlp_sk = MLPClassifier(hidden_layer_sizes=hidden_layers_global,
                            activation="logistic",
                            solver="sgd",
