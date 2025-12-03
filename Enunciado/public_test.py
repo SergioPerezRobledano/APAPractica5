@@ -4,6 +4,7 @@
 
 from UPerceptron import debugInitializeWeights, computeNumericalGradient
 from sklearn.metrics import accuracy_score
+from MLPmulti import MLP_backprop_predict_multi
 import numpy as np
 
 def checkNNGradients(costNN, target_gradient, reg_param=0):
@@ -64,3 +65,44 @@ def MLP_test_step(mlp_backprop_predict, alpha, X_train, y_train, X_test, y_test,
     y_test_classes = np.argmax(y_test, axis=1)
     accu = accuracy_score(y_test_classes, y_pred)
     print(f"Calculate accuracy for lambda = {(lambda_):1.5f} : {(accu):1.5f} expected accuracy is aprox: {(baseLineAccuracy):1.5f}")
+
+def MLP_test_step_multi(MLP_backprop_predict_multi, alpha, X_train, y_train, X_test, y_test, lambda_, num_ite, baseLineAccuracy, verbose,hidden_layers):
+    """
+    Ejecuta un paso de test usando un MLP de N capas ocultas.
+    Entrena la red con los parametros dados, calcula accuracy
+    e imprime comparacion con el baseline.
+
+    Parametros:
+        mlp_backprop_predict : funcion wrapper para entrenamiento+prediccion
+        alpha                : learning rate
+        X_train, y_train     : datos de entrenamiento
+        X_test, y_test       : datos de prueba codificados one-hot
+        lambda_              : regularizacion
+        num_ite              : iteraciones
+        baseLineAccuracy     : precision esperada
+        verbose              : frecuencia de impresion
+        hidden_layers        : lista con sizes de capas ocultas
+    """
+
+    # entrenar y predecir usando las capas ocultas especificadas
+    y_pred = MLP_backprop_predict_multi(
+        X_train,
+        y_train,
+        X_test,
+        alpha,
+        lambda_,
+        num_ite,
+        verbose,
+        hidden_layers
+    )
+
+    # convertir one-hot a clases
+    y_test_classes = np.argmax(y_test, axis=1)
+
+    # calcular accuracy
+    accu = accuracy_score(y_test_classes, y_pred)
+
+    print(
+        f"Calculate accuracy for lambda = {lambda_:1.5f} : {accu:1.5f} "
+        f"expected accuracy is aprox: {baseLineAccuracy:1.5f}"
+    )
