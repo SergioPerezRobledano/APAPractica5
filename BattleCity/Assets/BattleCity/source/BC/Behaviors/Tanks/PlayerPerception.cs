@@ -13,35 +13,6 @@ public class PlayerPerception : PerceptionBase
     private const int NUM_CONTEXT = 5;
     private int actions = 0;
 
-    // --- Método que devuelve la percepción como array de floats
-    public float[] GetPerceptionArray()
-    {
-        // De acuerdo a los parámetros que se deben devolver en el modelo
-        return new float[]
-        {
-            PerceptionNeighborhood[0],   // NEIGHBORHOOD_UP
-            PerceptionNeighborhood[1],   // NEIGHBORHOOD_DOWN
-            PerceptionNeighborhood[2],   // NEIGHBORHOOD_RIGHT
-            PerceptionNeighborhood[3],   // NEIGHBORHOOD_LEFT
-            PerceptionNeighborhoodDistance[0], // NEIGHBORHOOD_DIST_UP
-            PerceptionNeighborhoodDistance[1], // NEIGHBORHOOD_DIST_DOWN
-            PerceptionNeighborhoodDistance[2], // NEIGHBORHOOD_DIST_RIGHT
-            PerceptionNeighborhoodDistance[3], // NEIGHBORHOOD_DIST_LEFT
-            CommandCenterPosition.x,    // COMMAND_CENTER_X
-            CommandCenterPosition.y,    // COMMAND_CENTER_Y
-            agentRivals[0]?.position.x ?? 100, // AGENT_1_X (si no hay rival, usar 100)
-            agentRivals[0]?.position.y ?? 100, // AGENT_1_Y
-            agentRivals[1]?.position.x ?? 100, // AGENT_2_X
-            agentRivals[1]?.position.y ?? 100, // AGENT_2_Y
-            CanFire ? 1 : 0,           // CAN_FIRE
-            health.health,                     // HEALTH
-            LifePosition.x,             // LIFE_X
-            LifePosition.y,             // LIFE_Y
-            ExitPosition.x,             // EXIT_X
-            ExitPosition.y              // EXIT_Y
-        };
-    }
-
     void Start()
     {
         this._Start();
@@ -61,6 +32,7 @@ public class PlayerPerception : PerceptionBase
                 agentRivals[numTanks] = enemies[i].transform;
                 numTanks++;
             }
+
         }
     }
 
@@ -86,6 +58,8 @@ public class PlayerPerception : PerceptionBase
         }
     }
 
+
+
     public Vector2 ExitPosition
     {
         get
@@ -93,6 +67,8 @@ public class PlayerPerception : PerceptionBase
             return exitPosition;
         }
     }
+
+
 
     public Transform Exit
     {
@@ -125,6 +101,7 @@ public class PlayerPerception : PerceptionBase
         NEIGHBORHOOD_DIST_UP = 4, NEIGHBORHOOD_DIST_DOWN = 5, NEIGHBORHOOD_DIST_RIGHT = 6, NEIGHBORHOOD_DIST_LEFT = 7,
         COMMAND_CENTER_X = 8, COMMAND_CENTER_Y = 9, AGENT_1_X = 10, AGENT_1_Y = 11, AGENT_2_X = 12, AGENT_2_Y = 13, CAN_FIRE = 14, HEALTH = 15, LIFE_X = 16,
         LIFE_Y = 17, EXIT_X = 18, EXIT_Y = 19//, ACT_1 = 20, ACT_2 = 21, ACT_3 = 22, ACT_4 = 23, ACT_5 = 24
+
     }
 
     public static string[] GetParameterNames()
@@ -140,6 +117,7 @@ public class PlayerPerception : PerceptionBase
 
     public static MLGym.Parameters ReadParameters(int numParameters, float t, PlayerPerception perception, int health)
     {
+
         MLGym.Parameters p = new MLGym.Parameters(numParameters, t);
         for (int i = 0; i < perception.PerceptionNeighborhood.Length; i++)
         {
@@ -174,6 +152,7 @@ public class PlayerPerception : PerceptionBase
             p[(int)Player_PARAMETER_ID.AGENT_2_X] = 100;
             p[(int)Player_PARAMETER_ID.AGENT_2_Y] = 100;
         }
+
 
         p[(int)Player_PARAMETER_ID.CAN_FIRE] = perception.CanFire ? 1 : 0;
         p[(int)Player_PARAMETER_ID.HEALTH] = health;

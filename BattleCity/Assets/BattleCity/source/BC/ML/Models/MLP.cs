@@ -1,4 +1,4 @@
-using System;
+
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -59,105 +59,94 @@ public class MLPModel
     }
 
     /// <summary>
-    /// Feedforward del MLP.
+    /// Parameters required for model input. By default it will be perception, kart position and time, 
+    /// but depending on the data cleaning and data acquisition modificiations made by each one, the input will need more parameters.
     /// </summary>
-    /// <param name="input"></param>
-    /// <returns></returns>
+    /// <param name="p">The Agent perception</param>
+    /// <returns>The action label</returns>
     public float[] FeedForward(float[] input)
     {
-        List<float[,]> weights = mlpParameters.GetCoeff();
-        List<float[]> biases = mlpParameters.GetInter();
+        // Obtenemos coeficientes (pesos) y los intercepts (sesgos)
+        List<float[,]> coefficients = mlpParameters.GetCoeff();
+        List<float[]> intercepts = mlpParameters.GetInter();
 
-        float[] activation = input;
+        float[] currentInput = input;
 
-        int numLayers = weights.Count;
-        for (int l = 0; l < numLayers; l++)
+        // Iteramos por cada capa de la red
+        for (int i = 0; i < coefficients.Count; i++)
         {
-            int rows = weights[l].GetLength(0); // Número de neuronas en capa l+1
-            int cols = weights[l].GetLength(1); // Número de neuronas en capa l
+            int rows = coefficients[i].GetLength(0); // Neuronas capa anterior (input dim)
+            int cols = coefficients[i].GetLength(1); // Neuronas capa actual (output dim)
 
-            // Depuración para verificar dimensiones
-            Debug.Log($"Layer {l}: Rows = {rows}, Cols = {cols}");
-            Debug.Log($"Layer {l}: Activation Length = {activation.Length}");
+            float[] layerOutput = new float[cols];
 
-            // Verificación de que la activación tiene el tamaño correcto
-            if (activation.Length != cols)
+            // Multiplicación de Matrices: Input * Pesos + Sesgo
+            for (int c = 0; c < cols; c++)
             {
-                throw new Exception($"El tamaño de la activación no coincide con el número de columnas de los pesos en la capa {l}. " +
-                                    $"Activación tiene longitud {activation.Length} pero los pesos tienen {cols} columnas.");
-            }
-
-            float[] z = new float[rows];
-
-            // z = W * activation + b
-            for (int i = 0; i < rows; i++)
-            {
-                z[i] = biases[l][i]; // sesgo para la neurona i
-                for (int j = 0; j < cols; j++)
+                float sum = 0f;
+                for (int r = 0; r < rows; r++)
                 {
-                    z[i] += weights[l][i, j] * activation[j]; // Calculamos la suma ponderada
+                    // currentInput debe coincidir con rows
+                    sum += currentInput[r] * coefficients[i][r, c];
+                }
+                // Sumar el sesgo (intercept)
+                sum += intercepts[i][c];
+
+                // Aplicar función de activación
+                // Si NO es la última capa, aplicamos Sigmoide (capas ocultas)
+                // Si ES la última capa, preparamos para Softmax (output layer)
+                if (i < coefficients.Count - 1)
+                {
+                    layerOutput[c] = sigmoid(sum);
+                }
+                else
+                {
+                    // En la última capa pasamos el valor crudo (logits) a la SoftMax
+                    layerOutput[c] = sum;
                 }
             }
-
-            // Activación
-            if (l < numLayers - 1)
-            {
-                // Capas ocultas: sigmoide
-                for (int i = 0; i < z.Length; i++)
-                {
-                    z[i] = sigmoid(z[i]);
-                }
-            }
-            else
-            {
-                // Última capa: softmax
-                z = SoftMax(z);
-            }
-
-            // Actualizar la activación para la siguiente capa
-            activation = z;
+            // La salida de esta capa se convierte en la entrada de la siguiente
+            currentInput = layerOutput;
         }
 
-        return activation;
+        // Aplicamos SoftMax al resultado final para obtener probabilidades
+        return SoftMax(currentInput);
     }
 
-
-    /// <summary>
-    /// Sigmoide
-    /// </summary>
     private float sigmoid(float z)
     {
-        return 1f / (1f + Mathf.Exp(-z));
+        // Fórmula Sigmoide: 1 / (1 + e^-z)
+        return 1.0f / (1.0f + Mathf.Exp(-z));
     }
 
-    /// <summary>
-    /// Softmax
-    /// </summary>
     public float[] SoftMax(float[] zArr)
     {
-        float max = float.NegativeInfinity;
-        foreach (float v in zArr)
-            if (v > max) max = v;
+        float[] result = new float[zArr.Length];
+        float sum = 0f;
 
-        float sumExp = 0f;
-        float[] expArr = new float[zArr.Length];
+        // 1. Calcular exponenciales y la suma total
         for (int i = 0; i < zArr.Length; i++)
         {
-            expArr[i] = Mathf.Exp(zArr[i] - max); // estabilidad numérica
-            sumExp += expArr[i];
+            result[i] = Mathf.Exp(zArr[i]);
+            sum += result[i];
         }
 
-        for (int i = 0; i < expArr.Length; i++)
+        // 2. Normalizar dividiendo por la suma
+        for (int i = 0; i < zArr.Length; i++)
         {
-            expArr[i] /= sumExp;
+            result[i] = result[i] / sum;
         }
 
-        return expArr;
+        return result;
     }
 
+    
+
     /// <summary>
-    /// Predicción: índice de mayor salida
+    /// Elige el output de mayor nivel
     /// </summary>
+    /// <param name="output"></param>
+    /// <returns></returns>
     public int Predict(float[] output)
     {
         float max;
@@ -166,13 +155,17 @@ public class MLPModel
     }
 
     /// <summary>
-    /// Obtener índice de mayor valor
+    /// Obtiene el índice de mayor valor.
     /// </summary>
+    /// <param name="output"></param>
+    /// <param name="max"></param>
+    /// <returns></returns>
     public int GetIndexMaxValue(float[] output, out float max)
     {
         max = output[0];
         int index = 0;
 
+        // Buscar el índice con la mayor probabilidad
         for (int i = 1; i < output.Length; i++)
         {
             if (output[i] > max)
@@ -181,7 +174,6 @@ public class MLPModel
                 index = i;
             }
         }
-
         return index;
     }
 }
