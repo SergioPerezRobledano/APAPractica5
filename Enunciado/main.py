@@ -33,9 +33,9 @@ if __name__ == "__main__":
 
 
     # 4.5 Crear parametros 
-    hidden_layers_global = [40, 35, 25,15]
+    hidden_layers_global = [30,15]
     alpha_global = 0.0
-    num_ite_global = 5000
+    num_ite_global = 3500
     lambda_global = 0.92606
     verbose_global = 200
 
