@@ -181,24 +181,25 @@ def cargar_y_preprocesar_csv(ruta_csv: str):
 
     numeric_cols = [col for col in X.columns if col not in categorical_cols]
 
+    # Eliminar las columnas categóricas de X antes de la normalización
+    X_cleaned = X.drop(columns=categorical_cols)
+
+    # Preprocesamiento solo para las columnas numéricas
     preprocessor = ColumnTransformer(
         transformers=[
             ("num", StandardScaler(), numeric_cols),
-            ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols)
         ]
     )
 
-    pipeline = Pipeline(steps=[
-        ("preprocessing", preprocessor)
-    ])
+    # Pipeline para preprocesamiento
+    pipeline = Pipeline(steps=[("preprocessing", preprocessor)])
 
-    # Fit + transform
-    X_clean = pipeline.fit_transform(X)
+    # Fit + transform para las columnas numéricas
+    X_cleaned = pipeline.fit_transform(X_cleaned)
 
-    print("Tamaño final:", X_clean.shape)
-    print("Clases:", set(y))
+    print("Tamaño final tras preprocesar:", X_cleaned.shape)
 
     # ============================================================
     # 6. DEVOLVER TAMBIÉN LAS MEDIAS Y DESVIACIONES
     # ============================================================
-    return X_clean, y, means, stds
+    return X_cleaned, y, means, stds
