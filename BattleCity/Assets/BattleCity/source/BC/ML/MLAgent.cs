@@ -2,15 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Unity.XR.Oculus.Input;
 using UnityEngine;
 using UnityEngine.Rendering;
-
-
-
-
-
 
 public class MLAgent : MonoBehaviour
 {
@@ -29,8 +23,6 @@ public class MLAgent : MonoBehaviour
     public List<OHE_Elements> oHE_Elements;
     public Record recorder;
 
-
-
     private MLPParameters mlpParameters;
     private MLPModel mlpModel;
     private PlayerPerception perception;
@@ -40,8 +32,6 @@ public class MLAgent : MonoBehaviour
     private OneHotEncoding oneHotEncoding;
     private float _time;
 
-
-    // Start is called before the first frame update
     void Start()
     {
         if (agentEnable)
@@ -60,6 +50,7 @@ public class MLAgent : MonoBehaviour
             standarScaler = new StandarScaler(_standarScaler.text);
             oneHotEncoding = new OneHotEncoding(oHE_Elements);
             recorder.ResetInGame();
+
             if (runTest)
             {
                 Tuple<List<MLGym.Parameters>, List<int>> tuple = Record.ReadFromCsv(csvTest.text, true);
@@ -78,7 +69,7 @@ public class MLAgent : MonoBehaviour
                 }
                 float acc = goals / ((float)parameters.Count);
                 float diff = Mathf.Abs(acc - accuracyTarget);
-                Debug.Log("Accuracy " + acc + " Accuracy espected " + accuracyTarget + " goalds " + goals + " Examples " + parameters.Count + " Difference " + diff);
+                Debug.Log("Accuracy " + acc + " Accuracy expected " + accuracyTarget + " goals " + goals + " Examples " + parameters.Count + " Difference " + diff);
                 if (diff < aceptThreshold)
                 {
                     Debug.Log("Test Complete!");
@@ -87,11 +78,9 @@ public class MLAgent : MonoBehaviour
                 {
                     Debug.LogError("Error: Accuracy is not the same. Accuracy in C# " + acc + " accuracy in sklearn " + acc);
                 }
-
             }
         }
     }
-
 
     private void Update()
     {
@@ -100,11 +89,11 @@ public class MLAgent : MonoBehaviour
         {
             _time += Time.deltaTime;
             PerceptionBase.ACTION_TYPE actions = PerceptionBase.ACTION_TYPE.MOVE_UP;
-            if (_time > 1f) // Tiempo para evitar la condición de parada inicial del agente.
+            if (_time > 1f)
             {
                 actions = AgentInput();
             }
-            //Guarda las acciones realizadas por si las queremos usar en le contexto.
+
             perception.AddAction(Record.ConvertInputToLabel(actions));
 
             switch (actions)
@@ -130,53 +119,78 @@ public class MLAgent : MonoBehaviour
                     this.tankMove.Move(Vector2.zero);
                     break;
             }
-            //El agente por defecto siempre dispara, podeis intentar aprender un comportamiento de disparo.
             this.tankFire.Fire();
         }
     }
 
-
-    /// <summary>
-    /// Motodo que debe llamar al modelo MLP leer de los parametros de perception y hacer las conversiones necesarias para poder ejecutar el
-    /// método Runfeedforward que ejecuta la red neuronal
-    /// </summary>
-    /// <returns></returns>
     public PerceptionBase.ACTION_TYPE AgentInput()
     {
         int action = -1;
         switch (model)
         {
             case ModelType.MLP:
-                action = 0;
-                //TODO leer de los parámetros de la percepción.
-                //Debe respetar el mismo orden que los datos.
-                //TODO Llamar a RunFeedForward
-                //guardar la toma de decisiones y despues validar si son correctas.
+                // --- 1. Obtener percepción del agente
+                float[] perceptionInput = perception.GetPerceptionArray();
+
+                // --- 2. Eliminar columnas que no se usan
+                perceptionInput = perceptionInput
+                    .Where((value, index) => !indicesToRemove.Contains(index))
+                    .ToArray();
+
+                // --- 3. Normalizar datos numéricos
+                if (standarScaler != null)
+                {
+                    perceptionInput = standarScaler.Transform(perceptionInput);
+                }
+
+                // --- 4. Aplicar codificación one-hot a variables categóricas
+                if (oneHotEncoding != null)
+                {
+                    perceptionInput = oneHotEncoding.Transform(perceptionInput);
+                }
+
+                // --- 5. Ejecutar FeedForward
+                float[] outputs = RunFeedForward(perceptionInput);
+
+                // --- 6. Elegir acción
+                action = this.mlpModel.Predict(outputs);
+
+                // --- 7. Registrar decisión
                 recorder.AIRecord(action);
                 break;
         }
-        PerceptionBase.ACTION_TYPE input = Record.ConvertLabelToInput(action);
-        return input;
+
+        PerceptionBase.ACTION_TYPE inputAction = Record.ConvertLabelToInput(action);
+        return inputAction;
     }
 
-    /// <summary>
-    /// Ejecuta el modelo Feedforward.
-    /// </summary>
-    /// <param name="modelInput"></param>
-    /// <returns></returns>
     public float[] RunFeedForward(float[] modelInput)
     {
-        //permite eliminar columnas de la percepción si las habeis eliminado en el modelo.
-        modelInput = modelInput.Where((value, index) => !indicesToRemove.Contains(index)).ToArray();
-        //TODO Hacer las transformaciónes necesarias para ejecutar el modelo
+        // --- 1. Eliminar columnas no utilizadas
+        modelInput = modelInput
+            .Where((value, index) => !indicesToRemove.Contains(index))
+            .ToArray();
 
-        //Guardamos el model input con las trasformaciones para poder ejecutarlo desde paython y comporbar si funciona.
+        // --- 2. Normalizar datos numéricos
+        if (standarScaler != null)
+        {
+            modelInput = standarScaler.Transform(modelInput);
+        }
+
+        // --- 3. Aplicar OneHotEncoding a variables categóricas
+        if (oneHotEncoding != null)
+        {
+            modelInput = oneHotEncoding.Transform(modelInput);
+        }
+
+        // --- 4. Guardar input transformado
         recorder.AIRecord(modelInput);
+
+        // --- 5. Ejecutar FeedForward del MLP
         float[] outputs = this.mlpModel.FeedForward(modelInput);
 
         return outputs;
     }
-
 
     public static string TrimpBrackers(string val)
     {
@@ -263,7 +277,6 @@ public class MLAgent : MonoBehaviour
                                 coefficient = false;
                                 mlpParameters.CreateIntercept(currentParameter, currentDimension[1]);
                             }
-
                         }
                         else if (name == "values")
                         {

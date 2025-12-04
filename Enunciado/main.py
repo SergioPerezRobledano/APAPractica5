@@ -5,7 +5,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.neighbors import KNeighborsClassifier 
 from sklearn.metrics import accuracy_score
 
-from Utils import unir_csv_en_carpeta, cargar_y_preprocesar_csv
+from Utils import unir_csv_en_carpeta, cargar_y_preprocesar_csv, ExportAllformatsMLPSKlearn,WriteStandardScaler
 from public_test import MLP_test_step_multi
 #from MLP import MLP_backprop_predict
 from MLPmulti import MLP_backprop_predict_multi
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     unir_csv_en_carpeta(carpeta, salida)
 
     # 2 Cargar y preprocesar
-    X_clean, Y = cargar_y_preprocesar_csv(salida)
+    X_clean, Y,mean,stds = cargar_y_preprocesar_csv(salida)
     Y = Y.to_numpy()  # asegurarse de que sea NumPy
 
     # 3 Dividir en entrenamiento y prueba
@@ -33,7 +33,7 @@ if __name__ == "__main__":
 
 
     # 4.5 Crear parametros 
-    hidden_layers_global = [50, 40, 30]
+    hidden_layers_global = [40, 35, 25,15]
     alpha_global = 0.0
     num_ite_global = 5000
     lambda_global = 0.92606
@@ -55,26 +55,29 @@ if __name__ == "__main__":
     #     hidden_layers=hidden_layers_global 
     # )
 
-    # # 6 Ejecutar test con MLP de SKLearn
-    # mlp_sk = MLPClassifier(hidden_layer_sizes=hidden_layers_global,
-    #                        activation="logistic",
-    #                        solver="sgd",
-    #                        max_iter = num_ite_global,
-    #                        learning_rate='constant', 
-    #                        learning_rate_init = lambda_global,
-    #                        n_iter_no_change = num_ite_global, 
-    #                        alpha = alpha_global,
-    #                        verbose=True,
-    #                        random_state=0,
-    #                        )
+    # 6 Ejecutar test con MLP de SKLearn
+    mlp_sk = MLPClassifier(hidden_layer_sizes=hidden_layers_global,
+                           activation="logistic",
+                           solver="sgd",
+                           max_iter = num_ite_global,
+                           learning_rate='constant', 
+                           learning_rate_init = lambda_global,
+                           n_iter_no_change = num_ite_global, 
+                           alpha = alpha_global,
+                           verbose=True,
+                           random_state=0,
+                           )
 
-    # mlp_sk.fit(X_train,y_train_encoded) # Para entrenar a la red con los dato s que le pasamos 
-    # acc = mlp_sk.score(X_test,y_test_encoded) # Esto saca la precision del modelo con respecto a los datos supuestos del test
+    mlp_sk.fit(X_train,y_train_encoded) # Para entrenar a la red con los dato s que le pasamos 
+    acc = mlp_sk.score(X_test,y_test_encoded) # Esto saca la precision del modelo con respecto a los datos supuestos del test
 
-    # if(acc > 0.80):
-    #     print("Guay del paraguay: " + str(acc))
-    # else: 
-    #     print("MALMALMAL: " + str(acc))
+    if(acc > 0.80):
+        print("Guay del paraguay: " + str(acc))
+    else: 
+        print("MALMALMAL: " + str(acc))
+
+    ExportAllformatsMLPSKlearn(mlp_sk, X_train,"Picklename", "onix", "json","Custom")
+    WriteStandardScaler("./ExportarUnity/"+"StandarScaler",mean,stds)
 
     # # 8 Ejecutar test con MLP de SKLearn con parametros cambiados, usando relu y lbfgs
     # mlp_sk2 = MLPClassifier(hidden_layer_sizes=[50,40,35],
@@ -98,23 +101,23 @@ if __name__ == "__main__":
     #     print("MALMALMAL la segunda: " + str(acc2))
 
     # 9 Ejecutar un KNN para comprobar que tal va (entre 3 y 20 va de locos)
-    kneighbors = 7
+    # kneighbors = 7
 
-    knn_sk = KNeighborsClassifier(
-    n_neighbors=kneighbors,
+    # knn_sk = KNeighborsClassifier(
+    # n_neighbors=kneighbors,
     
-    # Esto usa ponderacion por distancia (el peso que tienen entre ellos por distancia)
-    weights='distance', 
+    # # Esto usa ponderacion por distancia (el peso que tienen entre ellos por distancia)
+    # weights='distance', 
     
-    metric='euclidean' 
-)
+    # metric='euclidean' 
+# )
 
-    knn_sk.fit(X_train, y_train) # Entrenar con datos, no usar y_encoded porque si no sale con formato Multilabel-indicator y la precision usa una Multiclase (formato de lo que le pasas)
+    # knn_sk.fit(X_train, y_train) # Entrenar con datos, no usar y_encoded porque si no sale con formato Multilabel-indicator y la precision usa una Multiclase (formato de lo que le pasas)
 
-    y_pred_knn = knn_sk.predict(X_test) # Prediccion
-    acc_knn = accuracy_score(y_test, y_pred_knn) # Precision de los datos
+    # y_pred_knn = knn_sk.predict(X_test) # Prediccion
+    # acc_knn = accuracy_score(y_test, y_pred_knn) # Precision de los datos
 
-    if(acc_knn > 0.80):
-            print("Guay del paraguay la KNN: " + str(acc_knn))
-    else: 
-            print("MALMALMAL la KNN: " + str(acc_knn))
+    # if(acc_knn > 0.80):
+    #         print("Guay del paraguay la KNN: " + str(acc_knn))
+    # else: 
+    #         print("MALMALMAL la KNN: " + str(acc_knn))
