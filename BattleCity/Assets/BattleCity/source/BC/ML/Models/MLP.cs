@@ -76,10 +76,15 @@ public class MLPModel
             int rows = weights[l].GetLength(0); // Número de neuronas en capa l+1
             int cols = weights[l].GetLength(1); // Número de neuronas en capa l
 
+            // Depuración para verificar dimensiones
+            Debug.Log($"Layer {l}: Rows = {rows}, Cols = {cols}");
+            Debug.Log($"Layer {l}: Activation Length = {activation.Length}");
+
             // Verificación de que la activación tiene el tamaño correcto
             if (activation.Length != cols)
             {
-                throw new Exception("El tamaño de la activación no coincide con el número de columnas de los pesos.");
+                throw new Exception($"El tamaño de la activación no coincide con el número de columnas de los pesos en la capa {l}. " +
+                                    $"Activación tiene longitud {activation.Length} pero los pesos tienen {cols} columnas.");
             }
 
             float[] z = new float[rows];
@@ -115,6 +120,7 @@ public class MLPModel
 
         return activation;
     }
+
 
     /// <summary>
     /// Sigmoide
