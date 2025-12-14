@@ -35,9 +35,10 @@ if __name__ == "__main__":
 
 
     # 4.5 Crear parametros 
-    hidden_layers_global = [30,15]
+    # hidden_layers_global = [30,25,10,5]    // Para comprobacion de multicapa
+    hidden_layers_global = [40,20]
     alpha_global = 0.0
-    num_ite_global = 3500
+    num_ite_global = 10000
     lambda_global = 0.92606
     verbose_global = 200
 
@@ -64,7 +65,7 @@ if __name__ == "__main__":
                            max_iter = num_ite_global,
                            learning_rate='constant', 
                            learning_rate_init = lambda_global,
-                           n_iter_no_change = num_ite_global, 
+                           n_iter_no_change = 500, 
                            alpha = alpha_global,
                            verbose=True,
                            random_state=0,
