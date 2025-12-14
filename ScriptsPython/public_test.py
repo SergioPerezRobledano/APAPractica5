@@ -106,3 +106,4 @@ def MLP_test_step_multi(MLP_backprop_predict_multi, alpha, X_train, y_train, X_t
         f"Calculate accuracy for lambda = {lambda_:1.5f} : {accu:1.5f} "
         f"expected accuracy is aprox: {baseLineAccuracy:1.5f}"
     )
+    return accu

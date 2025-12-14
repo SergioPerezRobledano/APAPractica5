@@ -1,5 +1,5 @@
-from skl2onnx import to_onnx
-from onnx2json import convert
+# from skl2onnx import to_onnx
+# from onnx2json import convert
 import os
 import pandas as pd
 import pickle
@@ -16,7 +16,7 @@ def ExportONNX_JSON_TO_Custom(onnx_json,mlp):
     initializer = graphDic["initializer"]
     s= "num_layers:"+str(mlp.n_layers_)+"\n"
     index = 0
-    parameterIndex = 0;
+    parameterIndex = 0
     for parameter in initializer:
         name = parameter["name"]
         print("Capa ",name)
@@ -35,30 +35,30 @@ def ExportONNX_JSON_TO_Custom(onnx_json,mlp):
             print("Esta capa no es interesante ",name)
     return s
 
-def ExportAllformatsMLPSKlearn(mlp,X,picklefileName,onixFileName,jsonFileName,customFileName):
-    with open(picklefileName,'wb') as f:
-        pickle.dump(mlp,f)
+# def ExportAllformatsMLPSKlearn(mlp,X,picklefileName,onixFileName,jsonFileName,customFileName):
+#     with open(picklefileName,'wb') as f:
+#         pickle.dump(mlp,f)
 
-    onx = to_onnx(mlp, X[:1])
-    with open(onixFileName, "wb") as f:
-        f.write(onx.SerializeToString())
+#     onx = to_onnx(mlp, X[:1])
+#     with open(onixFileName, "wb") as f:
+#         f.write(onx.SerializeToString())
 
-    onnx_json = convert(input_onnx_file_path=onixFileName,output_json_path=jsonFileName,json_indent=2)
+#     onnx_json = convert(input_onnx_file_path=onixFileName,output_json_path=jsonFileName,json_indent=2)
 
-    customFormat = ExportONNX_JSON_TO_Custom(onnx_json,mlp)
-    with open("./ExportarUnity/"+customFileName, 'w') as f:
-        f.write(customFormat)
+#     customFormat = ExportONNX_JSON_TO_Custom(onnx_json,mlp)
+#     with open("./ExportarUnity/"+customFileName, 'w') as f:
+#         f.write(customFormat)
 
-def WriteStandardScaler(file,mean,var):
-    line = ""
-    for i in range(0,len(mean)-1):
-        line = line + str(mean[i]) + ","
-    line = line + str(mean[len(mean)-1])+ "\n"
-    for i in range(0,len(var)-1):
-        line = line + str(var[i]) + ","
-    line = line + str(var[len(var)-1])+ "\n"
-    with open(file, 'w') as f:
-        f.write(line)
+# def WriteStandardScaler(file,mean,var):
+#     line = ""
+#     for i in range(0,len(mean)-1):
+#         line = line + str(mean[i]) + ","
+#     line = line + str(mean[len(mean)-1])+ "\n"
+#     for i in range(0,len(var)-1):
+#         line = line + str(var[i]) + ","
+#     line = line + str(var[len(var)-1])+ "\n"
+#     with open(file, 'w') as f:
+#         f.write(line)
 
 
 
